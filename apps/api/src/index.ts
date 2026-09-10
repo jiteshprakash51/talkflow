@@ -28,6 +28,7 @@ type Bindings = {
   WHATSAPP_VERIFY_TOKEN?: string;
   MAX_CHATS_PER_USER_PER_DAY?: string;
   MAX_RUNS_PER_USER_PER_DAY?: string;
+  CRON_SECRET?: string;
 };
 
 type Ctx = { env: Bindings };
@@ -105,6 +106,32 @@ interface PlanResult {
   plan?: unknown;
 }
 
+/**
+ * Fire a flow run. Queue when available (Cloudflare); on serverless (Vercel)
+ * the runtime freezes after the response, so the run MUST be awaited inline.
+ * Local dev stays fire-and-forget for snappy chat.
+ */
+async function dispatchRun(c: Ctx, flowId: string, userId: string): Promise<void> {
+  if (c.env.RUN_QUEUE) {
+    await c.env.RUN_QUEUE.send({ flow_id: flowId, user_id: userId }).catch(() => {});
+    return;
+  }
+  if (process.env.VERCEL) {
+    await runFlowLocal(flowId, userId, c);
+    return;
+  }
+  void runFlowLocal(flowId, userId, c);
+}
+
+/** Shared due-tick predicate for Cloudflare cron and the Vercel /api/cron route. */
+function isFlowDue(triggerDesc: string, now: Date): boolean {
+  const t = triggerDesc.toLowerCase();
+  const mins = now.getMinutes();
+  if (/hourly|every hour/.test(t)) return true;
+  if (/morn|daily|every day/.test(t) && now.getHours() === 8 && mins < 5) return true;
+  return /manual|telegram|whatsapp/.test(t) ? false : mins < 5;
+}
+
 // Shared brain: PWA + Telegram + WhatsApp all call this.
 async function handleNaturalText(c: Ctx, text: string, userId: string, via: string): Promise<PlanResult> {
   const store = storeOf(c);
@@ -168,8 +195,7 @@ async function handleNaturalText(c: Ctx, text: string, userId: string, via: stri
       steps_json: JSON.stringify(pending.steps ?? []),
       status: "active", created_via: via, created_at: Date.now(),
     });
-    if (c.env.RUN_QUEUE) await c.env.RUN_QUEUE.send({ flow_id: id, user_id: userId }).catch(() => {});
-    else void runFlowLocal(id, userId, c);
+    await dispatchRun(c, id, userId);
     return finish(`Done! '${pending.title_en}' is now running. Say 'list' anytime to see it.`, { flow_id: id });
   }
 
@@ -179,10 +205,7 @@ async function handleNaturalText(c: Ctx, text: string, userId: string, via: stri
       flows.find((f) => text.toLowerCase().includes(f.title_en.toLowerCase().split(" ")[0])) ?? flows[0];
     if (!target) return finish("No automation found yet. Tell me what to build first.");
     await store.setFlowStatus(target.id, cmd === "stop" ? "paused" : "active");
-    if (cmd === "run") {
-      if (c.env.RUN_QUEUE) await c.env.RUN_QUEUE.send({ flow_id: target.id, user_id: target.user_id }).catch(() => {});
-      else void runFlowLocal(target.id, target.user_id, c);
-    }
+    if (cmd === "run") await dispatchRun(c, target.id, target.user_id);
     return finish(
       cmd === "stop"
         ? `'${target.title_en}' paused. Say 'run ${target.title_en}' to resume.`
@@ -299,12 +322,10 @@ app.post("/api/chat", async (c) => {
 // ---- Flows ----
 app.get("/api/flows", async (c) => c.json({ ok: true, flows: await storeOf(c).listFlows() }));
 app.post("/api/flows/:id/run", async (c) => {
-  const store = storeOf(c);
   const id = c.req.param("id");
-  const flow = await store.getFlow(id);
+  const flow = await storeOf(c).getFlow(id);
   if (!flow) return c.json({ ok: false, reply_en: "Automation not found." }, 404);
-  if (c.env.RUN_QUEUE) await c.env.RUN_QUEUE.send({ flow_id: id, user_id: flow.user_id }).catch(() => {});
-  else void runFlowLocal(id, flow.user_id, c);
+  await dispatchRun(c, id, flow.user_id);
   return c.json({ ok: true, reply_en: `'${flow.title_en}' started.` });
 });
 app.post("/api/flows/:id/stop", async (c) => {
@@ -415,6 +436,23 @@ app.post("/api/connectors/generate", async (c) => {
   } catch (e) {
     return c.json({ ok: false, reply_en: `I couldn't understand those docs yet. Paste a shorter section, ideally the OpenAPI paths. (${(e as Error).message.slice(0, 100)})` }, 502);
   }
+});
+
+// ---- Vercel Cron: GET /api/cron?secret=... (runs due flows inline) ----
+app.get("/api/cron", async (c) => {
+  const expected = envStr(c, "CRON_SECRET");
+  if (!expected || c.req.query("secret") !== expected) return c.text("forbidden", 403);
+  const store = storeOf(c);
+  const now = new Date();
+  const due = (await store.listFlows())
+    .filter((f) => f.status === "active" && isFlowDue(f.trigger_desc, now))
+    .slice(0, 5);
+  const ran: string[] = [];
+  for (const f of due) {
+    await runFlowLocal(f.id, f.user_id, c);
+    ran.push(f.id);
+  }
+  return c.json({ ok: true, ran });
 });
 
 // ---- Telegram webhook ----
@@ -541,13 +579,7 @@ export async function scheduled(env: Bindings): Promise<void> {
   const store = storeFor(env.DB, env as unknown as Record<string, string | undefined>);
   const flows = (await store.listFlows()).filter((f) => f.status === "active");
   const now = new Date();
-  const due = flows.filter((f) => {
-    const t = f.trigger_desc.toLowerCase();
-    const mins = now.getMinutes();
-    if (/hourly|every hour/.test(t)) return true;
-    if (/morn|daily|every day/.test(t) && now.getHours() === 8 && mins < 5) return true;
-    return /manual|telegram|whatsapp/.test(t) ? false : mins < 5; // default: 5-min tick picks up cron-like flows
-  });
+  const due = flows.filter((f) => isFlowDue(f.trigger_desc, now));
   for (const f of due.slice(0, 5)) {
     if (env.RUN_QUEUE) await env.RUN_QUEUE.send({ flow_id: f.id, user_id: f.user_id }).catch(() => {});
   }
@@ -573,3 +605,6 @@ export default {
     return queueBatch(batch.messages, env);
   },
 };
+
+// Named export for the Vercel adapter (api/[[...route]].ts). Workers use default.
+export { app };

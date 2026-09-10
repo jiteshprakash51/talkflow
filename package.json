@@ -14,7 +14,8 @@
     "build": "npm run build -w packages/llm-router && npm run build -w packages/db && npm run build -w packages/connectors && npm run build -w packages/prompts && npm run build -w apps/api && npm run build -w apps/web",
     "typecheck": "tsc --noEmit -p tsconfig.base.json || true",
     "test": "node --test packages/llm-router/test/*.test.js apps/api/test/*.test.js 2>&1 || true",
-    "deploy": "npx wrangler deploy -c wrangler.jsonc"
+    "deploy": "npx wrangler deploy -c wrangler.jsonc",
+    "db:migrate:turso": "node apps/api/scripts/migrate-turso.mjs"
   },
   "engines": {
     "node": ">=20"

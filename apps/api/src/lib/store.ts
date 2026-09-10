@@ -71,6 +71,11 @@ export async function ensureSchemaD1(db: D1Like): Promise<void> {
   }
 }
 
+// Turso import is edge-safe (@libsql/client/web, fetch-only) so the
+// Cloudflare Workers bundle is unaffected. Imported last to keep the
+// D1/file paths tree-shakeable.
+import { tursoStore } from "./store-turso.js";
+
 // ---- Local JSON file store (Docker / npm dev). Same shape as D1. ----
 interface FileDB {
   flows: StoredFlow[];
@@ -496,9 +501,10 @@ function localAdapter(): Store {
   };
 }
 
-/** D1 when the binding exists (Cloudflare), JSON file otherwise (local/Docker). */
+/** D1 in Cloudflare, Turso on Vercel, JSON file otherwise (local/Docker). */
 export function storeFor(db: D1Like | undefined, env: Record<string, string | undefined>): Store {
   if (db) return new D1Store(db, limitsOf(env));
+  if (env.TURSO_DATABASE_URL ?? process.env.TURSO_DATABASE_URL) return tursoStore(env);
   return localAdapter();
 }
 

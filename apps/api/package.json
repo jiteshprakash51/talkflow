@@ -9,15 +9,16 @@
     "start": "node ./dist/local.js"
   },
   "dependencies": {
-    "hono": "^4.7.0",
     "@hono/node-server": "^1.13.0",
-    "@talkflow/llm-router": "0.1.0",
+    "@libsql/client": "^0.18.0",
+    "@talkflow/connectors": "0.1.0",
     "@talkflow/db": "0.1.0",
+    "@talkflow/llm-router": "0.1.0",
     "@talkflow/prompts": "0.1.0",
-    "@talkflow/connectors": "0.1.0"
+    "hono": "^4.7.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
   }
 }
