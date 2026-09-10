@@ -13,6 +13,8 @@ docker compose up --build
 docker exec talkflow-ollama-1 ollama pull qwen2.5:7b
 ```
 
+In compose, the web container proxies same-origin `/api/*` to the api service (nginx), so no extra config is needed. For non-compose deploys, bake the API address in: `docker build --build-arg VITE_API_URL=https://your-api -f apps/web/Dockerfile .`
+
 Or without Docker:
 
 ```powershell

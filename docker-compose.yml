@@ -1,12 +1,14 @@
 services:
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
     ports:
       - "8787:8787"
     environment:
       - PORT=8787
       - OLLAMA_BASE_URL=http://ollama:11434
-      - DB_PATH=/data/talkflow.sqlite
+      - DB_PATH=/data/talkflow.json
     env_file:
       - .dev.vars
     volumes:
@@ -16,7 +18,9 @@ services:
     restart: unless-stopped
 
   web:
-    build: ./apps/web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
     ports:
       - "5173:80"
     depends_on:
