@@ -1,0 +1,37 @@
+services:
+  api:
+    build: ./apps/api
+    ports:
+      - "8787:8787"
+    environment:
+      - PORT=8787
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - DB_PATH=/data/talkflow.sqlite
+    env_file:
+      - .dev.vars
+    volumes:
+      - talkflow-data:/data
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  web:
+    build: ./apps/web
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    # First run: docker exec talkflow-ollama-1 ollama pull qwen2.5:7b
+
+volumes:
+  talkflow-data:
+  ollama-data:

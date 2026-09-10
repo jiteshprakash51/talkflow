@@ -1,0 +1,23 @@
+# Copy to .dev.vars (local) — TalkFlow works with zero keys via Ollama, add what you need
+# Free LLM keys (all no-card free tiers)
+GROQ_API_KEY=
+CEREBRAS_API_KEY=
+GEMINI_API_KEY=
+MISTRAL_API_KEY=
+NVIDIA_API_KEY=
+OPENROUTER_API_KEY=
+OLLAMA_BASE_URL=http://localhost:11434
+# Telegram bot (free via @BotFather)
+TELEGRAM_BOT_TOKEN=
+# Google OAuth (free, Google Cloud console → OAuth client → Web app)
+# Redirect URI must match exactly, e.g. http://localhost:8787/api/auth/google/callback
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8787/api/auth/google/callback
+# WhatsApp Cloud API (free tier, Meta developers dashboard)
+WHATSAPP_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_VERIFY_TOKEN=talkflow
+# Free-tier safety caps (per user per day)
+MAX_CHATS_PER_USER_PER_DAY=100
+MAX_RUNS_PER_USER_PER_DAY=25

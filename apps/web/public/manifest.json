@@ -1,0 +1,10 @@
+{
+  "name": "TalkFlow",
+  "short_name": "TalkFlow",
+  "description": "Free talk-to-automate. Just say it.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#16a34a",
+  "icons": []
+}

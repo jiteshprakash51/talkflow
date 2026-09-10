@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
+  "name": "talkflow-api",
+  "main": "apps/api/src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "OLLAMA_BASE_URL": "http://localhost:11434",
+    "GOOGLE_REDIRECT_URI": "https://talkflow-api.<you>.workers.dev/api/auth/google/callback",
+    "WHATSAPP_VERIFY_TOKEN": "talkflow"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "talkflow",
+      "database_id": "local-talkflow-replace-after-create",
+      "migrations_dir": "packages/db/migrations"
+    }
+  ],
+  "queues": {
+    "producers": [{ "binding": "RUN_QUEUE", "queue": "talkflow-runs" }],
+    "consumers": [{ "queue": "talkflow-runs", "max_batch_size": 5, "max_retries": 3 }]
+  },
+  "ai": { "binding": "AI" },
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "observability": { "enabled": true }
+}
