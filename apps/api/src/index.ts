@@ -261,9 +261,11 @@ async function handleNaturalText(c: Ctx, text: string, userId: string, via: stri
   }
 }
 
-app.get("/api/health", (c) =>
-  c.json({ ok: true, service: "talkflow-api", free: freeProvidersStatus(routerEnv(c)), store: c.env.DB ? "d1" : "file" })
-);
+app.get("/api/health", (c) => {
+  const env = c.env as unknown as Record<string, string | undefined>;
+  const store = c.env.DB ? "d1" : env.TURSO_DATABASE_URL ?? process.env.TURSO_DATABASE_URL ? "turso" : "file";
+  return c.json({ ok: true, service: "talkflow-api", store, free: freeProvidersStatus(routerEnv(c)) });
+});
 
 app.get("/api/usage", async (c) => {
   const store = storeOf(c);

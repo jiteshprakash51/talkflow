@@ -65,10 +65,10 @@ async function openAIChat(
 const PROVIDERS: Provider[] = [
   {
     name: "groq",
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     available: (e) => !!e.GROQ_API_KEY,
     call: (e, m) =>
-      openAIChat("https://api.groq.com/openai/v1", e.GROQ_API_KEY!, "llama-3.3-70b-versatile", m, e.fetchFn ?? fetch),
+      openAIChat("https://api.groq.com/openai/v1", e.GROQ_API_KEY!, "openai/gpt-oss-20b", m, e.fetchFn ?? fetch),
   },
   {
     name: "cerebras",
