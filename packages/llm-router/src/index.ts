@@ -51,6 +51,7 @@ async function openAIChat(
       ...extraHeaders,
     },
     body: JSON.stringify({ model, messages, temperature: 0.2, max_tokens: 1500 }),
+    signal: AbortSignal.timeout(25000),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = (await res.json()) as {
@@ -96,6 +97,7 @@ const PROVIDERS: Provider[] = [
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ system_instruction: system ? { parts: [{ text: system }] } : undefined, contents }),
+            signal: AbortSignal.timeout(25000),
           }
         );
         if (res.ok) {
