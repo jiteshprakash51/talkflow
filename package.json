@@ -11,7 +11,7 @@
   "scripts": {
     "dev:api": "npm run dev -w apps/api",
     "dev:web": "npm run dev -w apps/web",
-    "build": "npm run build -w packages/llm-router && npm run build -w packages/db && npm run build -w packages/connectors && npm run build -w packages/prompts && npm run build -w apps/api && npm run build -w apps/web",
+    "build": "echo [talkflow-build 1/6] llm-router && npm run build -w @talkflow/llm-router && echo [talkflow-build 2/6] db && npm run build -w @talkflow/db && echo [talkflow-build 3/6] connectors && npm run build -w @talkflow/connectors && echo [talkflow-build 4/6] prompts && npm run build -w @talkflow/prompts && echo [talkflow-build 5/6] api && npm run build -w talkflow-api && echo [talkflow-build 6/6] web && npm run build -w talkflow-web && echo [talkflow-build DONE]",
     "typecheck": "npm run typecheck -w apps/api -w apps/web -w @talkflow/llm-router -w @talkflow/db -w @talkflow/prompts -w @talkflow/connectors",
     "test": "node --test packages/llm-router/test/*.test.js apps/api/test/*.test.js 2>&1 || true",
     "deploy": "npx wrangler deploy -c wrangler.jsonc",
