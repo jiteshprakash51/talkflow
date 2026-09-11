@@ -3,6 +3,11 @@
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
-  "scripts": { "build": "tsc -p tsconfig.json" },
-  "devDependencies": { "typescript": "^5.6.0" }
+  "scripts": {
+    "build": "npx -y esbuild@0.24.2 src/index.ts --outfile=dist/index.js --format=esm --log-level=warning",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
 }
