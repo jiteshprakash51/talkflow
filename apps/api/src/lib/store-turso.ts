@@ -1,8 +1,9 @@
 // Turso (libSQL) Store — the Vercel backend for TalkFlow.
-// Uses @libsql/client/web (fetch-only, edge-safe) so the Cloudflare Workers
-// bundle is unaffected. SQL is SQLite dialect, same as D1.
+// Uses @libsql/client/http (fetch-only, no WebSocket dependency) so the
+// bundle stays pure JS and the Cloudflare Workers build is unaffected.
+// SQL is SQLite dialect, same as D1.
 
-import { createClient } from "@libsql/client/web";
+import { createClient } from "@libsql/client/http";
 import type {
   Store,
   StoreLimits,

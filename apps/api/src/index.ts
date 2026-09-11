@@ -610,3 +610,8 @@ export default {
 
 // Named export for the Vercel adapter (api/[[...route]].ts). Workers use default.
 export { app };
+
+// Re-exports so tests exercise the production bundle (esbuild flattens dist/).
+export { TursoStore } from "./lib/store-turso.js";
+export { storeFor, limitsOf } from "./lib/store.js";
+export { uid };

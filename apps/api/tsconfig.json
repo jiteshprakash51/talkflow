@@ -6,7 +6,11 @@
     "module": "ESNext",
     "target": "ES2022",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "baseUrl": ".",
+    "paths": {
+      "@talkflow/*": ["../../packages/*/src/index.ts"]
+    }
   },
   "include": ["src", "test"]
 }

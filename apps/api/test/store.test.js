@@ -12,7 +12,7 @@ before(async () => {
   process.env.DB_PATH = join(dir, "talkflow.json");
   process.env.MAX_CHATS_PER_USER_PER_DAY = "2";
   process.env.MAX_RUNS_PER_USER_PER_DAY = "1";
-  const mod = await import("../dist/lib/store.js");
+  const mod = await import("../dist/index.js");
   storeFor = mod.storeFor;
   uid = mod.uid;
 });

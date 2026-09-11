@@ -23,9 +23,9 @@ function sqliteAdapter() {
 }
 
 before(async () => {
-  const mod = await import("../dist/lib/store-turso.js");
+  const mod = await import("../dist/index.js");
   TursoStore = mod.TursoStore;
-  ({ uid } = await import("../dist/lib/store.js"));
+  ({ uid } = mod);
   db = new DatabaseSync(":memory:");
   const migDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "packages", "db", "migrations");
   for (const f of readdirSync(migDir).filter((x) => x.endsWith(".sql")).sort()) {

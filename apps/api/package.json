@@ -4,7 +4,8 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "npx -y esbuild@0.24.2 src/index.ts src/local.ts --bundle --platform=node --format=esm --outdir=dist --external:ws --external:bufferutil --external:utf-8-validate --tsconfig=tsconfig.json --log-level=warning",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "dev": "npm run build && node ./dist/local.js",
     "start": "node ./dist/local.js"
   },
